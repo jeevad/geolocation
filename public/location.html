@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="/bootstrap-4.0.0-dist/css/bootstrap.min.css">
+<script src="/js/angular.min.js"></script>
+
+<body>
+    <div class="container" ng-app="myApp" ng-controller="myCtrl">
+        <div class="row mt-4">
+            <form class="form-inline">
+                <div class="form-group mx-sm-3 mb-2">
+                    <label for="range" class="sr-only">Range in KM</label>
+                    <input type="text" class="form-control" id="range" ng-model="rangeKm" placeholder="KM radius">
+                </div>
+                <button class="btn btn-primary mb-2" ng-click="getUsers()">Search</button>
+            </form>
+        </div>
+        <div class="row" ng-if="users.length">
+            <div class="col alert alert-success" role="alert">
+                {{users.length}} records found!
+            </div>
+        </div>
+        <div class="row">
+            <table class="table">
+                <tr>
+                    <th>S.no</th>
+                    <th>Name</th>
+                    <th>Customer Code</th>
+                    <th>Location</th>
+                </tr>
+                <tr ng-repeat="user in users">
+                    <td>{{$index + 1}}</td>
+                    <td>{{user.name}}</td>
+                    <td>{{user.cust_code}}</td>
+                    <td>{{user.location.coordinates[1]}}, {{user.location.coordinates[0]}}</td>
+                </tr>
+                <tr ng-if="!users.length">
+                    <td colspan="4" class="text-center">No records found!</td>
+                </tr>
+            </table>
+        </div>
+        <script>
+            var app = angular.module('myApp', []);
+            app.controller('myCtrl', function ($scope, $http) {
+                $scope.rangeKm = 15;
+                $scope.lat = '19.18926156';
+                $scope.long = '72.97169499';
+
+                $scope.getUsers = () => {
+                    console.log('in---');
+                    $http.get(`/users?rangeKm=${$scope.rangeKm}&lat=${$scope.lat}&long=${$scope.long}`)
+                        .then(function (response) {
+                            $scope.users = response.data;
+                        });
+                };
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        $scope.$apply(function () {
+                            // console.log('position---', position.coords.latitude);
+                            $scope.position = position;
+                            $scope.lat = position.coords.latitude;
+                            $scope.long = position.coords.longitude;
+                            $scope.getUsers();
+                        });
+                    });
+                }
+            });
+        </script>
+
+</body>
+
+</html>
